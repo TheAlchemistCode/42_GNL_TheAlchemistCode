@@ -13,104 +13,99 @@
 #include "get_next_line.h"
 #include <stdio.h>
 
-char	*read_from_file(char *buffer2, int fd)
+char	*_01_stash_builder(char *stash, int fd)
 {
-	char	*buffer1;
+	char	*buffer;
 	ssize_t	bytes_read;
-	size_t	chunk;
 
-	if (BUFFER_SIZE > 1048576)
-		chunk = 1048576;
-	else
-		chunk = BUFFER_SIZE;
-	buffer1 = malloc(chunk + 1);
-	if (buffer1 == NULL)
-		return (free(buffer2), NULL);
+	buffer = malloc(BUFFER_SIZE + 1);
+	if (buffer == NULL)
+		return (free(stash), NULL);
 	bytes_read = 1;
 	while (bytes_read > 0)
 	{
-		bytes_read = read(fd, buffer1, chunk);
+		bytes_read = read(fd, buffer, BUFFER_SIZE);
 		if (bytes_read == -1)
-			return (free(buffer1), free(buffer2), NULL);
-		buffer1[bytes_read] = '\0';
-		buffer2 = append_buffer(buffer2, buffer1);
-		if (!buffer2)
-			return (free(buffer1), NULL);
-		if (ft_strchr(buffer2, '\n'))
+			return (free(buffer), free(stash), NULL);
+		buffer[bytes_read] = '\0';
+		stash = append_buffer(stash, buffer);
+		if (!stash)
+			return (free(buffer), NULL);
+		if (ft_strchr(stash, '\n'))
 			break ;
 	}
-	return (free(buffer1), buffer2);
+	return (free(buffer), stash);
 }
 
-char	*extract_line(char *buffer2)
+char	*extract_line(char *stash)
 {
 	size_t	len;
-	char	*line;
+	char	*workline;
 
 	len = 0;
-	while (buffer2[len] && buffer2[len] != '\n')
+	while (stash[len] && stash[len] != '\n')
 		len++;
-	if (buffer2[len] == '\n')
+	if (stash[len] == '\n')
 		len++;
-	line = ft_calloc(len + 1, sizeof(char));
-	if (!line)
+	workline = ft_calloc(len + 1, sizeof(char));
+	if (!workline)
 		return (NULL);
-	ft_strlcpy(line, buffer2, len + 1);
-	return (line);
+	ft_strlcpy(workline, stash, len + 1);
+	return (workline);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*buffer2 = NULL;
-	char		*line;
+	static char	*stash = NULL;
+	char		*workline;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (!buffer2)
-		buffer2 = ft_calloc(1, 1);
-	if (!buffer2)
+	if (!stash)
+		stash = ft_calloc(1, 1);
+	if (!stash)
 		return (NULL);
-	if (!ft_strchr(buffer2, '\n'))
+	if (!ft_strchr(stash, '\n'))
 	{
-		buffer2 = read_from_file(buffer2, fd);
-		if (!buffer2)
+		stash = _01_stash_builder(stash, fd);
+		if (!stash)
 			return (NULL);
 	}
-	line = extract_line(buffer2);
-	if (!line || line[0] == '\0')
+	workline = extract_line(stash);
+	if (!workline || workline[0] == '\0')
 	{
-		free(buffer2);
-		buffer2 = NULL;
-		free(line);
+		free(stash);
+		stash = NULL;
+		free(workline);
 		return (NULL);
 	}
-	buffer2 = obtain_remaining(buffer2);
-	return (line);
+	stash = obtain_remaining(stash);
+	return (workline);
 }
 
-char	*obtain_remaining(char *buffer2)
+char	*obtain_remaining(char *stash)
 {
 	size_t	start;
 	size_t	len;
 	char	*remaining;
 
 	start = 0;
-	while (buffer2[start] && buffer2[start] != '\n')
+	while (stash[start] && stash[start] != '\n')
 		start++;
-	if (buffer2[start] == '\n')
+	if (stash[start] == '\n')
 		start++;
-	len = ft_strlen(buffer2 + start);
+	len = ft_strlen(stash + start);
 	remaining = ft_calloc(len + 1, sizeof(char));
 	if (!remaining)
-		return (free(buffer2), NULL);
-	ft_strlcpy(remaining, buffer2 + start, len + 1);
-	return (free(buffer2), remaining);
+		return (free(stash), NULL);
+	ft_strlcpy(remaining, stash + start, len + 1);
+	return (free(stash), remaining);
 }
 
-char	*append_buffer(char *buffer2, char *read_buffer)
+char	*append_buffer(char *stash, char *buffer)
 {
 	char	*temp;
 
-	temp = ft_strjoin(buffer2, read_buffer);
-	return (free(buffer2), temp);
+	temp = ft_strjoin(stash, buffer);
+	return (free(stash), temp);
 }
