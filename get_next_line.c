@@ -11,7 +11,12 @@
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdio.h>
+
+/* 
+ * Reads from file descriptor and builds stash until newline or EOF
+ * Allocates buffer, reads BUFFER_SIZE bytes at a time
+ * Returns: Updated stash with new content or NULL on error
+ */
 
 char	*_01_stash_builder(char *stash, int fd)
 {
@@ -28,7 +33,7 @@ char	*_01_stash_builder(char *stash, int fd)
 		if (bytes_read == -1)
 			return (free(buffer), free(stash), NULL);
 		buffer[bytes_read] = '\0';
-		stash = append_buffer(stash, buffer);
+		stash = _01_stashjoiner(stash, buffer);
 		if (!stash)
 			return (free(buffer), NULL);
 		if (ft_strchr(stash, '\n'))
@@ -37,7 +42,25 @@ char	*_01_stash_builder(char *stash, int fd)
 	return (free(buffer), stash);
 }
 
-char	*extract_line(char *stash)
+/* 
+ * Joins stash with buffer into new string
+ * Frees old stash and returns new concatenated string
+ * Returns: New joined string or NULL on error
+ */
+char	*_01_stashjoiner(char *stash, char *buffer)
+{
+	char	*temp;
+
+	temp = ft_strjoin(stash, buffer);
+	return (free(stash), temp);
+}
+
+/* 
+ * Extracts a single line from stash (including newline if present)
+ * Allocates new string for the line
+ * Returns: Extracted line (like "Hello\n\0") or NULL on error
+ */
+char	*_02_stashtrunc(char *stash)
 {
 	size_t	len;
 	char	*workline;
@@ -54,6 +77,35 @@ char	*extract_line(char *stash)
 	return (workline);
 }
 
+/* 
+ * Updates stash by removing extracted line and keeping remaining content
+ * Allocates new string for remaining content
+ * Returns: New string with remaining content or NULL on error
+ */
+char	*_03_leftover(char *stash)
+{
+	size_t	start;
+	size_t	len;
+	char	*leftovers;
+
+	start = 0;
+	while (stash[start] && stash[start] != '\n')
+		start++;
+	if (stash[start] == '\n')
+		start++;
+	len = ft_strlen(stash + start);
+	leftovers = ft_calloc(len + 1, sizeof(char));
+	if (!leftovers)
+		return (free(stash), NULL);
+	ft_strlcpy(leftovers, stash + start, len + 1);
+	return (free(stash), leftovers);
+}
+
+/* 
+ * Main function that returns one line at a time from file descriptor
+ * Uses static variable stash to maintain state between calls
+ * Returns: Next line from file or NULL if EOF/error
+ */
 char	*get_next_line(int fd)
 {
 	static char	*stash = NULL;
@@ -71,7 +123,7 @@ char	*get_next_line(int fd)
 		if (!stash)
 			return (NULL);
 	}
-	workline = extract_line(stash);
+	workline = _02_stashtrunc(stash);
 	if (!workline || workline[0] == '\0')
 	{
 		free(stash);
@@ -79,33 +131,34 @@ char	*get_next_line(int fd)
 		free(workline);
 		return (NULL);
 	}
-	stash = obtain_remaining(stash);
+	stash = _03_leftover(stash);
 	return (workline);
 }
 
-char	*obtain_remaining(char *stash)
+/*#include <stdio.h>
+#include <fcntl.h>
+
+int main(void)
 {
-	size_t	start;
-	size_t	len;
-	char	*remaining;
+	int     fd;
+	char    *line;
+	int     line_count;
 
-	start = 0;
-	while (stash[start] && stash[start] != '\n')
-		start++;
-	if (stash[start] == '\n')
-		start++;
-	len = ft_strlen(stash + start);
-	remaining = ft_calloc(len + 1, sizeof(char));
-	if (!remaining)
-		return (free(stash), NULL);
-	ft_strlcpy(remaining, stash + start, len + 1);
-	return (free(stash), remaining);
-}
+	// Test with a text file
+	fd = open("test.txt", O_RDONLY);
+	if (fd == -1)
+	{
+		printf("Error opening file\n");
+		return (1);
+	}
 
-char	*append_buffer(char *stash, char *buffer)
-{
-	char	*temp;
+	line_count = 1;
+	while ((line = get_next_line(fd)) != NULL)
+	{
+		printf("Line %d: %s", line_count++, line);
+		free(line);
+	}
 
-	temp = ft_strjoin(stash, buffer);
-	return (free(stash), temp);
-}
+	close(fd);
+	return (0);
+}*/
