@@ -32,7 +32,7 @@ char	*_01_stash_builder(char *stash, int fd)
 		bytes_read = read(fd, buffer, BUFFER_SIZE);
 		if (bytes_read == -1)
 			return (free(buffer), free(stash), NULL);
-		buffer[bytes_read] = '\0';
+		buffer[bytes_read] = '\0'; //add null terminator to the buffer
 		stash = _01_stashjoiner(stash, buffer);
 		if (!stash)
 			return (free(buffer), NULL);
@@ -111,12 +111,12 @@ char	*get_next_line(int fd)
 	static char	*stash = NULL;
 	char		*workline;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE <= 0) // Check for invalid file descriptor (fd) or invalid BUFFER_SIZE
 		return (NULL);
 	if (!stash)
-		stash = ft_calloc(1, 1);
+		stash = ft_calloc(1, 1); // to createe empty string
 	if (!stash)
-		return (NULL);
+		return (NULL); //if memory allocation fails return null.
 	if (!ft_strchr(stash, '\n'))
 	{
 		stash = _01_stash_builder(stash, fd);
@@ -135,7 +135,7 @@ char	*get_next_line(int fd)
 	return (workline);
 }
 
-/*#include <stdio.h>
+#include <stdio.h>
 #include <fcntl.h>
 
 int main(void)
@@ -161,4 +161,4 @@ int main(void)
 
 	close(fd);
 	return (0);
-}*/
+}

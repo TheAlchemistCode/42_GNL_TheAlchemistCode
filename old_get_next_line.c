@@ -120,14 +120,13 @@ char	*get_next_line(int fd)
 	buffer = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (!buffer)
 		return (NULL);
-	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
+	if (fd < 0 || BUFFER_SIZE <= 0 || read(0, 0, 0) < 0) // this check is inefficient, it creates a lot of overhead just to see if the file exists, and then 01stashbuilder continues to read from it anyway.
 	{
-		free(stash);
 		free(buffer);
 		stash = NULL;
 		return (NULL);
 	}
-	work_line = _01_stash_builder(fd, stash, buffer); // If nothing was read or an error occurred during building
+	work_line = _01_stash_builder(fd, stash, buffer); // 
 	free(buffer);
 	if (!work_line) //if nothing read, get out
 		return (NULL);

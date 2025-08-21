@@ -6,7 +6,7 @@
 /*   By: clyon <clyon@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/18 20:55:07 by clyon             #+#    #+#             */
-/*   Updated: 2025/08/18 22:57:47 by clyon            ###   ########.fr       */
+/*   Updated: 2025/08/20 21:47:15 by clyon            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,8 +98,8 @@ void	*ft_calloc(size_t nmeb, size_t size)
 	size_t			i;
 
 	i = 0;
-	if (nmeb != 0 && size > __SIZE_MAX__ / nmeb)
-		return (0);
+	if (nmeb != 0 && size > __SIZE_MAX__ / nmeb) //check for integer overflow
+		return (0); //returns null incase of integer overflow
 	tmp = malloc(nmeb * size);
 	if (!tmp)
 	{
